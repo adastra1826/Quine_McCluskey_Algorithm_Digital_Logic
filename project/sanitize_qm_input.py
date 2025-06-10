@@ -12,7 +12,7 @@ def verbose(self, message, *args, **kwargs):
         self._log(VERBOSE, message, args, **kwargs)
 Logger.verbose = verbose
 basicConfig(
-    level=DEBUG,
+    level=VERBOSE,
     format="%(levelname)s [%(funcName)s]: %(message)s"
 )
 logger = getLogger(__name__)

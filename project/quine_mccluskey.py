@@ -8,7 +8,7 @@ import math
 import sys
 import getopt
 import re
-from pprint import pformat
+from pprint import pformat, pprint
 from logging import *
 from sanitize_qm_input import sanitize_input
 
@@ -20,7 +20,7 @@ def verbose(self, message, *args, **kwargs):
         self._log(VERBOSE, message, args, **kwargs)
 Logger.verbose = verbose
 basicConfig(
-    level=DEBUG,
+    level=VERBOSE,
     format="%(levelname)s [%(funcName)s]: %(message)s"
 )
 logger = getLogger(__name__)
@@ -30,6 +30,7 @@ OPTIONS = "yh"
 LONG_OPTIONS = ["yes", "help"]
 ALLOWED_EXTENSIONS = [".txt", ".md", ".tsv", ".csv"]
 USAGE_TEXT = "[USAGE]"
+
 
 def parse_options():
     
@@ -113,24 +114,87 @@ def quine_mccluskey(inputData):
 
     mintermTableIndex = generate_minterm_table_index(inputData)
 
+    mintermTable = [[] for _ in mintermTableIndex]
+
+    for i in range(len(mintermTableIndex)):
+        for y in mintermTableIndex[i]:
+            mintermTable[i].append(inputData[y[0]][:-1])
+
+    logger.debug(f"Minterm table:\n{pformat(mintermTable)}")
+
+    primeImplicants = recursive_generate_prime_implicants(mintermTable, mintermTableIndex)
+
+    logger.debug(f"Prime implicants:\n{primeImplicants}")
+
     return inputData
+
 
 def generate_minterm_table_index(inputData):
     mintermLength = len(inputData[0])
     mintermTableIndex = [[] for _ in range(mintermLength)]
 
     for i, row in enumerate(inputData):
-        if row[mintermLength - 1] in {1, "x"}:
+        outputBit = row[mintermLength - 1]
+        if outputBit in {1, "x"}:
             numOnes = 0
             for bit in row[:len(row) - 1]:
-                if bit == 1: numOnes += 1            
-            mintermTableIndex[numOnes].append(i)
+                if bit == 1: numOnes += 1
+            requiredBit = True if outputBit == 1 else False
+            mintermTableIndex[numOnes].append([i, requiredBit]) # or 
 
-    logger.debug(f"Minterm table:\n{pformat(mintermTableIndex)}")
+    logger.debug(f"Minterm table index:\n{pformat(mintermTableIndex)}")
 
     return mintermTableIndex
 
 
+def recursive_generate_prime_implicants(mintermTable, mintermTableindex):
+
+    logger.debug(f"Minterm table:\n{pformat(mintermTable)}")
+    logger.debug(f"Minterm table index:\n{pformat(mintermTableindex)}")
+
+    tableLength = len(mintermTable)
+    if tableLength <= 1:
+        return mintermTable
+    
+    primeImplicants = [[] for _ in range(tableLength)]
+    primeImplicantTableIndex = [[] for _ in range(tableLength)]
+
+    
+    
+    i = 0
+    while True:
+
+        print(f"i: {i}")
+
+        groupOne = mintermTable[i]
+        groupTwo = mintermTable[i + 1]
+        newTerms = 0
+
+        for tOneIndex, termOne in enumerate(groupOne):
+            for tTwoIndex, termTwo in enumerate(groupTwo):
+                newTerm = termOne
+                differingBit = False
+                for y in range(len(termOne)):
+                    if termOne[y] != termTwo[y]:
+                        if differingBit or termOne[y] == "-" or termTwo[y] == "-":
+                            newTerm = None
+                        else:
+                            newTerm[y] = "-"
+                            differingBit = True
+                if newTerm:
+                    logger.verbose(f"New term:\n{newTerm}")
+                    primeImplicants[i].append(newTerm)
+                    primeImplicantTableIndex[i].append(mintermTableindex[tOneIndex][tTwoIndex])
+                    newTerms += 1
+        
+        if newTerms > 1:
+            primeImplicants.append(recursive_generate_prime_implicants(primeImplicants, primeImplicantTableIndex))
+                        
+
+
+        i += 1
+        if i == tableLength:
+            break
 
 
 if __name__ == "__main__":
