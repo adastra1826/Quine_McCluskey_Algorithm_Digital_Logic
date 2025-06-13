@@ -9,9 +9,9 @@ def verbose(self, msg, *args, **kwargs):
 Logger.verbose = verbose
 
 basicConfig(
-    level = VERBOSE,
+    level = DEBUG,
     format = "%(levelname)s [%(module)s:%(funcName)s]:\n%(message)s\n"
 )
 
 getLogger("sanitize_qm_input").setLevel(WARNING)
-getLogger("quine_mccluskey").setLevel(VERBOSE)
+getLogger("quine_mccluskey").setLevel(INFO)

@@ -7,33 +7,6 @@ from logging import *
 logger = getLogger(__name__)
 
 
-"""
-Starting data:
-[[0, '', 0, '', 0, '', 1],
- [0, '', 0, '', 1, '', 0],
- [0, '', 1, '', 0, '', 'x'],
- [0, '', 1, '', 1, '', 1],
- [1, '', 0, '', 0, '', 'x'],
- [1, '', 0, '', 1, '', 0],
- [1, '', 1, '', 0, '', 1],
- [1, '', 1, '', 1, '', 0]]
-
-Traceback (most recent call last):
-  File "/Users/admin/Library/Mobile Documents/com~apple~CloudDocs/Documents/VSC/Projects/Quine_McCluskey_Algorithm_Digital_Logic/project/./quine_mccluskey.py", line 214, in <module>
-    parse_options()
-    ~~~~~~~~~~~~~^^
-  File "/Users/admin/Library/Mobile Documents/com~apple~CloudDocs/Documents/VSC/Projects/Quine_McCluskey_Algorithm_Digital_Logic/project/./quine_mccluskey.py", line 60, in parse_options
-    inputData: List[List[Any]] = sanitize_input(inputFilePath)
-                                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
-  File "/Users/admin/Library/Mobile Documents/com~apple~CloudDocs/Documents/VSC/Projects/Quine_McCluskey_Algorithm_Digital_Logic/project/sanitize_qm_input.py", line 54, in sanitize_input
-    raise ValueError(f"DEBUG: Too many input rows.")
-ValueError: DEBUG: Too many input rows.
-admin@MBA project % 
-
-ADD SPACE HANDLING
-"""
-
-
 def sanitize_input(inputFilePath):
 
     file = resolve_input_file_path(inputFilePath)
@@ -80,9 +53,6 @@ def sanitize_input(inputFilePath):
         maxBinaryValue += "1"
     maxBinaryValue = int(maxBinaryValue, 2)
     maxRows = maxBinaryValue + 1
-
-    if rowLength >= 6:
-        raise ValueError(f"DEBUG: Too many input rows.")
     
     if numRows > maxRows:
         raise ValueError(f"Input table contains {numRows} rows. Maximum number of rows for this table is {maxRows}. Remove duplicate or conflicting rows.")
