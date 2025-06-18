@@ -2,11 +2,12 @@ import os
 import re
 from pprint import pformat
 from logging import *
+from generate_missing_rows import generate_missing_rows
 
 logger = getLogger(__name__)
 
 
-def sanitize_input(inputFilePath):
+def sanitize_file_input(inputFilePath):
 
     file = resolve_input_file_path(inputFilePath)
     
@@ -85,40 +86,6 @@ def resolve_input_file_path(inputFilePath):
     if not os.path.isfile(resolvedPath):
         raise FileNotFoundError(f"File not found: {resolvedPath}")    
     return resolvedPath
-
-
-def generate_missing_rows(incompleteData, maxRows):
-    """
-    Given `incomplete_data` (each row ending in a bit we don't care about here),
-    which is already sorted by its integer value, fill in any missing binary rows up to `max_rows`.
-    Returns a full list of rows, with newly created rows appended with "x".n 
-    """
-    
-    completeData = []
-    termLength = len(incompleteData[0]) - 1
-    incompleteDataRowIndex = 0
-
-    for rowIndex in range(maxRows):
-
-        incompleteDataRow = incompleteData[incompleteDataRowIndex]
-        dataBits = incompleteDataRow[:-1]
-        bitString = "".join(map(str, dataBits))
-
-        binaryValue = int(bitString, 2)
-
-        if binaryValue != rowIndex:
-
-            bits = bin(rowIndex)[2:].zfill(termLength)
-            missingRow = [int(b) for b in bits] + ["x"]
-            completeData.append(missingRow)
-
-            logger.verbose(f"Missing row at index {incompleteDataRowIndex}: {missingRow}")
-            
-        else:
-            incompleteDataRowIndex += 1
-            completeData.append(incompleteDataRow)
-    
-    return completeData
 
 
 def recursive_binary_partition_sort(rows, col = 0):

@@ -11,7 +11,7 @@ import re
 from pprint import pformat, pprint
 from logging import *
 import logger_setup
-from sanitize_qm_input import sanitize_input
+from sanitize_qm_input import sanitize_file_input
 
 logger = getLogger(__name__)
 
@@ -57,7 +57,7 @@ def parse_options():
     _, fileExtension = os.path.splitext(inputFilePath)
     if fileExtension.lower() not in ALLOWED_EXTENSIONS:
         raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
-    inputData = sanitize_input(inputFilePath)
+    inputData = sanitize_file_input(inputFilePath)
 
     outputLocation = None
     if argumentCount == 2:

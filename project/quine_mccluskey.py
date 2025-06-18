@@ -11,14 +11,14 @@ from pprint import pformat, pprint
 import logging
 from typing import Any, List, Dict, Optional
 import logger_setup as _
-from sanitize_qm_input import sanitize_input
+from sanitize_qm_input import sanitize_file_input
 from generate_prime_implicants import recursive_generate_prime_implicants
 
 logger = logging.getLogger("quine_mccluskey")
 
 # Define global constants
-OPTIONS: str = "yh"
-LONG_OPTIONS: List[str] = ["yes", "help"]
+OPTIONS: str = "m:d:yh"
+LONG_OPTIONS: List[str] = ["minterms=", "dontcares=", "yes", "help"]
 ALLOWED_EXTENSIONS: List[str] = [".txt", ".md", ".tsv", ".csv"]
 USAGE_TEXT: str = "[USAGE]"
 
@@ -35,16 +35,25 @@ def parse_options() -> None:
         sys.exit(1)
     
     parsed: Dict[str, bool] = {
+        "minterms": False,
+        "dontcares": False,
         "overwrite": False,
         "help": False
     }
 
     for argument, value in options:
-        if argument in ("-y", "--yes"):
+        if argument in ("-m", "--minterms"):
+            parsed["minterms"] = True
+            logger.debug(f"Minterms specified")
+        elif argument in ("-d", "--dontcares"):
+            parsed["dontcares"] = True
+            logger.debug(f"Don't cares specified")
+        elif argument in ("-y", "--yes"):
             parsed["overwrite"] = True
-            logger.info("Overwrite output file if it exists")
+            logger.debug(f"OVerwrite output file specified")
         elif argument in ("-h", "--help"):
             parsed["help"] = True
+            logger.debug(f"Help specified")
 
     if parsed["help"]:
         print(f"Sending help")
@@ -60,7 +69,7 @@ def parse_options() -> None:
     _, fileExtension = os.path.splitext(inputFilePath)
     if fileExtension.lower() not in ALLOWED_EXTENSIONS:
         raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
-    inputData: List[List[Any]] = sanitize_input(inputFilePath)
+    inputData: List[List[Any]] = sanitize_file_input(inputFilePath)
 
     outputLocation: Optional[str] = None
     if argumentCount == 2:
