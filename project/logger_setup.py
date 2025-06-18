@@ -14,4 +14,5 @@ basicConfig(
 )
 
 getLogger("sanitize_qm_input").setLevel(WARNING)
+getLogger("generate_prime_implicants").setLevel(INFO)
 getLogger("quine_mccluskey").setLevel(INFO)
