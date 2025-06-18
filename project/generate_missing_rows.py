@@ -14,23 +14,23 @@ def generate_missing_rows(
     Returns a full list of rows, with newly created rows appended with "x".n 
     """
     
-    completeData = []
-    termLength = len(incompleteData[0]) - 1
+    completeData: list[list[any]] = []
+    termLength: int = len(incompleteData[0]) - 1
     determinant: any = "x" if dontCare else 0
 
-    incompleteDataRowIndex = 0
+    incompleteDataRowIndex: int = 0
     for rowIndex in range(maxRows):
 
-        incompleteDataRow = incompleteData[incompleteDataRowIndex]
-        dataBits = incompleteDataRow[:-1]
-        bitString = "".join(map(str, dataBits))
+        incompleteDataRow: list[any] = incompleteData[incompleteDataRowIndex]
+        dataBits: list[int] = incompleteDataRow[:-1]
+        bitString: str = "".join(map(str, dataBits))
 
-        binaryValue = int(bitString, 2)
+        binaryValue: int = int(bitString, 2)
 
         if binaryValue != rowIndex:
 
-            bits = bin(rowIndex)[2:].zfill(termLength)
-            missingRow = [int(b) for b in bits] + [determinant]
+            bits: str = bin(rowIndex)[2:].zfill(termLength)
+            missingRow: list[any] = [int(b) for b in bits] + [determinant]
             completeData.append(missingRow)
 
             logger.debug(f"Missing row at index {incompleteDataRowIndex}: {missingRow}")

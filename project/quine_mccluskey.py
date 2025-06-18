@@ -9,8 +9,7 @@ import sys
 import getopt
 from pprint import pformat, pprint
 import logging
-from typing import Any, List, Dict, Optional
-import logger_setup as _
+from typing import Optional
 from sanitize_qm_input import sanitize_file_input
 from generate_prime_implicants import recursive_generate_prime_implicants
 
@@ -18,8 +17,8 @@ logger = logging.getLogger("quine_mccluskey")
 
 # Define global constants
 OPTIONS: str = "m:d:yh"
-LONG_OPTIONS: List[str] = ["minterms=", "dontcares=", "yes", "help"]
-ALLOWED_EXTENSIONS: List[str] = [".txt", ".md", ".tsv", ".csv"]
+LONG_OPTIONS: list[str] = ["minterms=", "dontcares=", "yes", "help"]
+ALLOWED_EXTENSIONS: list[str] = [".txt", ".md", ".tsv", ".csv"]
 USAGE_TEXT: str = "[USAGE]"
 
 
@@ -27,14 +26,14 @@ logger.info(f"------------------------------------------------------------------
 
 
 def parse_options() -> None:
-    argumentList: List[str] = sys.argv[1:]
+    argumentlist: list[str] = sys.argv[1:]
     try:
-        options, arguments = getopt.getopt(argumentList, OPTIONS, LONG_OPTIONS)
+        options, arguments = getopt.getopt(argumentlist, OPTIONS, LONG_OPTIONS)
     except getopt.GetoptError as e:
         print(str(e))
         sys.exit(1)
     
-    parsed: Dict[str, bool] = {
+    parsed: dict[str, bool] = {
         "minterms": False,
         "dontcares": False,
         "overwrite": False,
@@ -69,13 +68,13 @@ def parse_options() -> None:
     _, fileExtension = os.path.splitext(inputFilePath)
     if fileExtension.lower() not in ALLOWED_EXTENSIONS:
         raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
-    inputData: List[List[Any]] = sanitize_file_input(inputFilePath)
+    inputData: list[list[any]] = sanitize_file_input(inputFilePath)
 
     outputLocation: Optional[str] = None
     if argumentCount == 2:
         outputLocation = set_output_file_path(arguments[1], fileExtension, parsed["overwrite"])
 
-    outputData: List[List[Any]] = quine_mccluskey(inputData)
+    outputData: list[list[any]] = quine_mccluskey(inputData)
 
 
 def set_output_file_path(
@@ -117,26 +116,26 @@ def set_output_file_path(
 
 
 def quine_mccluskey(
-        inputData: List[List[Any]]
-    ) -> List[List[Any]]:
+        inputData: list[list[any]]
+    ) -> list[list[any]]:
 
 
     logger.info(f"Sanitized input data:\n{pformat(inputData)}")
 
-    mintermTableIndex: List[List[int]]
-    mintermTable: List[List[any]] 
+    mintermTableIndex: list[list[int]]
+    mintermTable: list[list[any]] 
     mintermTableIndex, mintermTable = generate_minterm_table_index(inputData)
     mintermLength = len(inputData[0]) - 1
 
-    initialCombinedMintermTableAndIndex: List[List[List[Any]]] = [[] for _ in mintermTableIndex]
+    initialCombinedMintermTableAndIndex: list[list[list[any]]] = [[] for _ in mintermTableIndex]
 
     for idx, itemX in enumerate(mintermTableIndex):
         for idy, itemY in enumerate(itemX):
-            combinedTerm: List[Any] = [itemY] + mintermTable[idx][idy]
+            combinedTerm: list[any] = [itemY] + mintermTable[idx][idy]
             initialCombinedMintermTableAndIndex[idx].append(combinedTerm)
 
 
-    combinedMintermTableAndIndex: List[List[List[Any]]] = []
+    combinedMintermTableAndIndex: list[list[list[any]]] = []
 
     for group in initialCombinedMintermTableAndIndex:
         if len(group) != 0:
@@ -144,7 +143,7 @@ def quine_mccluskey(
 
     logger.verbose(f"Combined table:\n{pformat(combinedMintermTableAndIndex)}")
 
-    primeImplicants: List[List[Any]] = recursive_generate_prime_implicants(combinedMintermTableAndIndex, mintermLength)
+    primeImplicants: list[list[any]] = recursive_generate_prime_implicants(combinedMintermTableAndIndex, mintermLength)
 
     logger.info(f"Prime implicants:\n{primeImplicants}")
 
@@ -152,12 +151,12 @@ def quine_mccluskey(
 
 
 def generate_minterm_table_index(
-        inputData: List[List[Any]]
-    ) -> tuple[List[List[int]], List[List[any]]]:
+        inputData: list[list[any]]
+    ) -> tuple[list[list[int]], list[list[any]]]:
     
     mintermLength: int = len(inputData[0])
-    mintermTableIndex: List[List[int]] = [[] for _ in range(mintermLength)]
-    mintermTable: List[List[int]] = [[] for _ in range(mintermLength)]
+    mintermTableIndex: list[list[int]] = [[] for _ in range(mintermLength)]
+    mintermTable: list[list[int]] = [[] for _ in range(mintermLength)]
 
     for i, row in enumerate(inputData):
         outputBit = row[mintermLength - 1]

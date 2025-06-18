@@ -1,14 +1,14 @@
-from typing import Any, List, Optional
+from typing import Optional
 from pprint import pformat
 from logging import *
 
 logger = getLogger(__name__)
 
 def recursive_generate_prime_implicants(
-        combinedMintermTableAndIndex: List[List[List[Any]]],
+        combinedMintermTableAndIndex: list[list[list[any]]],
         mintermLength: int,
         recursionLevel: int = 0
-    ) -> tuple[Optional[List[List[Any]]], Optional[List[List[Any]]]]:
+    ) -> tuple[Optional[list[list[any]]], Optional[list[list[any]]]]:
 
     tableLength: int = len(combinedMintermTableAndIndex)
     binaryValue: str = ""
@@ -28,8 +28,8 @@ def recursive_generate_prime_implicants(
 
         return (combinedMintermTableAndIndex)
     
-    primeImplicants: List[List[Any]] = [[]]
-    usedImplicants: List[Any] = []
+    primeImplicants: list[list[any]] = [[]]
+    usedImplicants: list[any] = []
 
     newTerms: int = 0
     i: int = 0
@@ -37,8 +37,8 @@ def recursive_generate_prime_implicants(
 
         logger.verbose(f"i: {i}")
 
-        groupOne: List[Any] = combinedMintermTableAndIndex[i]
-        groupTwo: List[Any] = combinedMintermTableAndIndex[i + 1]
+        groupOne: list[any] = combinedMintermTableAndIndex[i]
+        groupTwo: list[any] = combinedMintermTableAndIndex[i + 1]
 
 
         logger.verbose(f"Group one: {groupOne}\nGroup two: {groupTwo}")
@@ -47,14 +47,14 @@ def recursive_generate_prime_implicants(
             for tTwoIndex, termTwo in enumerate(groupTwo):
 
 
-                mintermOne: List[any] = termOne[disregardedBitCount:-1]
-                mintermTwo: List[any]  = termTwo[disregardedBitCount:-1]
-                termOneMIndex: List[int] = termOne[:disregardedBitCount]
-                termTwoMIndex: List[int] = termTwo[:disregardedBitCount]
-                combinedTermIndex: List[int] = termOneMIndex + termTwoMIndex
+                mintermOne: list[any] = termOne[disregardedBitCount:-1]
+                mintermTwo: list[any]  = termTwo[disregardedBitCount:-1]
+                termOneMIndex: list[int] = termOne[:disregardedBitCount]
+                termTwoMIndex: list[int] = termTwo[:disregardedBitCount]
+                combinedTermIndex: list[int] = termOneMIndex + termTwoMIndex
                 termOneOperand: any = termOne[-1]
                 termTwoOperand: any = termTwo[-1]
-                mintermOperand: List[any] = ["x"] if termOneOperand != 1 and termTwoOperand != 1 else [1]
+                mintermOperand: list[any] = ["x"] if termOneOperand != 1 and termTwoOperand != 1 else [1]
 
                 logger.verbose(f"""T1 index: {tOneIndex}
 Term one: {termOne}
@@ -62,7 +62,7 @@ T2 index: {tTwoIndex}
 Term two: {termTwo}
 """)
 
-                newTerm: Optional[List[Any]] = mintermOne.copy()
+                newTerm: Optional[list[any]] = mintermOne.copy()
 
                 logger.verbose(f"New term copy: {newTerm}")
 
@@ -83,7 +83,7 @@ Term two: {termTwo}
                     usedImplicants.append(termOne)
                     usedImplicants.append(termTwo)
 
-                    combinedNewTerm: List[any] = combinedTermIndex + newTerm + mintermOperand
+                    combinedNewTerm: list[any] = combinedTermIndex + newTerm + mintermOperand
                     logger.verbose(f"New term:\n{newTerm}\nCombined new term:\n{combinedNewTerm}")
 
                     try:
@@ -109,21 +109,21 @@ Term two: {termTwo}
 
         uniquePrimeImplicants = remove_duplicate_minterms(primeImplicants[0], mintermLength)
 
-        uniqueUsedImplicants: List[Any] = []
+        uniqueUsedImplicants: list[any] = []
         for term in usedImplicants:
             if term not in uniqueUsedImplicants:
                 uniqueUsedImplicants.append(term)
 
         logger.verbose(f"Used implicants:\n{pformat(uniqueUsedImplicants)}")
 
-        originalImplicants: List[Any] = []
+        originalImplicants: list[any] = []
         for group in combinedMintermTableAndIndex:
             for term in group:
                 originalImplicants.append(term)
 
         logger.verbose(f"Original implicants:\n{pformat(originalImplicants)}")
 
-        unusedImplicants: List[Any] = []
+        unusedImplicants: list[any] = []
         for term in originalImplicants:
             if term not in uniqueUsedImplicants:
                 unusedImplicants.append(term)
@@ -134,13 +134,13 @@ Term two: {termTwo}
 
         logger.verbose(f"Unique unused implicants:\n{pformat(uniqueUnusedImplicants, width=100)}")
 
-        returnList = uniquePrimeImplicants.copy()
+        returnlist = uniquePrimeImplicants.copy()
         if len(uniqueUnusedImplicants) > 0:
-            returnList.insert(0, uniqueUnusedImplicants)
+            returnlist.insert(0, uniqueUnusedImplicants)
 
-        logger.verbose(f"Prime implicants (returning this):\n{returnList}")
+        logger.verbose(f"Prime implicants (returning this):\n{returnlist}")
 
-        return returnList
+        return returnlist
     elif len(primeImplicants) > 1:
 
         logger.verbose(f"Going deeper with these prime implicants:\n{primeImplicants}")
@@ -152,26 +152,26 @@ Term two: {termTwo}
     
 
 def remove_duplicate_minterms(
-        primeImplicantList: List[Any] = None,
+        primeImplicantlist: list[any] = None,
         mintermLength: int = None
-) -> List[List[Any]]:
+) -> list[list[any]]:
     
-    if not primeImplicantList:
+    if not primeImplicantlist:
         return []
     
-    innerSlice: int = len(primeImplicantList[0]) - mintermLength - 1
+    innerSlice: int = len(primeImplicantlist[0]) - mintermLength - 1
     
-    minterms: List[Any] = []
-    for term in primeImplicantList:
+    minterms: list[any] = []
+    for term in primeImplicantlist:
         minterms.append(term[innerSlice:-1])
 
     logger.verbose(f"Prime implicant minterms only:\n{pformat(minterms)}")
 
-    uniquePrimeImplicants: List[Any] = []
-    uniqueMinterms: List[Any] = []
+    uniquePrimeImplicants: list[any] = []
+    uniqueMinterms: list[any] = []
     for idx, minterm in enumerate(minterms):
         if minterm not in uniqueMinterms:
-            uniquePrimeImplicants.append(primeImplicantList[idx])
+            uniquePrimeImplicants.append(primeImplicantlist[idx])
             uniqueMinterms.append(minterm)
 
     logger.verbose(f"Unique minterms:\n{pformat(uniqueMinterms)}")
