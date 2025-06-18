@@ -1,24 +1,8 @@
-
 from typing import Any, List, Optional
 from pprint import pformat
 from logging import *
 
 logger = getLogger(__name__)
-
-BLACK   = "\033[30m"
-RED     = "\033[31m"
-GREEN   = "\033[32m"
-YELLOW  = "\033[33m"
-BLUE    = "\033[34m"
-MAGENTA = "\033[35m"
-CYAN    = "\033[36m"
-WHITE   = "\033[37m"
-BRIGHT_RED = "\033[91m"
-
-BG_YELLOW = "\033[43m"
-BG_BLUE   = "\033[44m"
-
-RESET = "\033[0m"
 
 def recursive_generate_prime_implicants(
         combinedMintermTableAndIndex: List[List[List[Any]]],
@@ -33,14 +17,14 @@ def recursive_generate_prime_implicants(
     binaryValue = int(binaryValue, 2)
     disregardedBitCount = binaryValue
 
-    logger.debug(f"{RED}Recursion level: {recursionLevel}")
+    logger.debug(f"Recursion level: {recursionLevel}")
     logger.debug(f"Disregarded bit count: {disregardedBitCount}")
     logger.debug(f"Combined minterm table:\n{pformat(combinedMintermTableAndIndex)}")
-    logger.debug(f"Minterm table length: {tableLength}{RESET}")
+    logger.debug(f"Minterm table length: {tableLength}")
 
     if tableLength <= 1:
 
-        logger.verbose(f"{GREEN}Minterm table length ({tableLength}) is insufficient for combining terms, returning it:\n{combinedMintermTableAndIndex}\n{RESET}")
+        logger.verbose(f"Minterm table length ({tableLength}) is insufficient for combining terms, returning it:\n{combinedMintermTableAndIndex}\n")
 
         return (combinedMintermTableAndIndex)
     
@@ -108,7 +92,7 @@ Term two: {termTwo}
 
                         primeImplicants[i].append(combinedNewTerm)
                     except:
-                        logger.verbose(f"{RED}EXCEPTION{RESET}")
+                        logger.verbose(f"EXCEPTION")
                         primeImplicants.append([])
                         primeImplicants[i].append(combinedNewTerm)
                     
@@ -154,16 +138,16 @@ Term two: {termTwo}
         if len(uniqueUnusedImplicants) > 0:
             returnList.insert(0, uniqueUnusedImplicants)
 
-        logger.verbose(f"{GREEN}Prime implicants (returning this):\n{returnList}{RESET}")
+        logger.verbose(f"Prime implicants (returning this):\n{returnList}")
 
         return returnList
     elif len(primeImplicants) > 1:
 
-        logger.verbose(f"{YELLOW}Going deeper with these prime implicants:\n{primeImplicants}{RESET}")
+        logger.verbose(f"Going deeper with these prime implicants:\n{primeImplicants}")
 
         return recursive_generate_prime_implicants(primeImplicants, mintermLength, recursionLevel + 1)
     else:
-        logger.verbose(f"{RED}Reached the end of the function with nothing. This probably shouldn't happen?{RESET}")
+        logger.verbose(f"Reached the end of the function with nothing. This probably shouldn't happen?")
         return [None]
     
 

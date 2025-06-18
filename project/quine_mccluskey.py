@@ -3,6 +3,7 @@
 MODULE DATA
 """
 
+import logger_setup
 import os
 import sys
 import getopt
@@ -21,23 +22,8 @@ LONG_OPTIONS: List[str] = ["yes", "help"]
 ALLOWED_EXTENSIONS: List[str] = [".txt", ".md", ".tsv", ".csv"]
 USAGE_TEXT: str = "[USAGE]"
 
-BLACK   = "\033[30m"
-RED     = "\033[31m"
-GREEN   = "\033[32m"
-YELLOW  = "\033[33m"
-BLUE    = "\033[34m"
-MAGENTA = "\033[35m"
-CYAN    = "\033[36m"
-WHITE   = "\033[37m"
-BRIGHT_RED = "\033[91m"
 
-BG_YELLOW = "\033[43m"
-BG_BLUE   = "\033[44m"
-
-RESET = "\033[0m"
-
-
-logger.info(f"{CYAN}----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------{RESET}")
+logger.info(f"----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------")
 
 
 def parse_options() -> None:
@@ -147,7 +133,7 @@ def quine_mccluskey(
         if len(group) != 0:
             combinedMintermTableAndIndex.append(group)
 
-    logger.verbose(f"{RESET}Combined table:\n{pformat(combinedMintermTableAndIndex)}{RESET}")
+    logger.verbose(f"Combined table:\n{pformat(combinedMintermTableAndIndex)}")
 
     primeImplicants: List[List[Any]] = recursive_generate_prime_implicants(combinedMintermTableAndIndex, mintermLength)
 
