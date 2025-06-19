@@ -1,20 +1,5 @@
 from logging import *
-
-BLACK: str      = "\033[30m"
-RED: str        = "\033[31m"
-GREEN: str      = "\033[32m"
-YELLOW: str     = "\033[33m"
-BLUE: str       = "\033[34m"
-MAGENTA: str    = "\033[35m"
-CYAN: str       = "\033[36m"
-WHITE: str      = "\033[37m"
-BRIGHT_RED: str = "\033[91m"
-
-BG_YELLOW: str  = "\033[43m"
-BG_BLUE: str    = "\033[44m"
-BG_RED: str     = "\x1b[41m"
-
-RESET = "\033[0m"
+from bash_colors import *
 
 VERBOSE = 5
 
@@ -26,13 +11,14 @@ LEVEL_DEFAULTS = {
     ERROR: BG_RED + WHITE
 }
 
+
 def make_colored_method(level_no):
     def fn(self, msg, *args, color=None, **kwargs):
         if not self.isEnabledFor(level_no):
             return
-        col = color or LEVEL_DEFAULTS.get(level_no, RESET)
+        color = color or LEVEL_DEFAULTS.get(level_no, RESET)
         extra = kwargs.setdefault("extra", {})
-        extra["color"] = col
+        extra["color"] = color
         kwargs.setdefault("stacklevel", 2)
         self.log(level_no, msg, *args, **kwargs)
     return fn
@@ -40,8 +26,8 @@ def make_colored_method(level_no):
 
 class ColorFormatter(Formatter):
     def format(self, record):
-        col = getattr(record, "color", RESET)
-        record.msg = f"{col}{record.getMessage()}{RESET}"
+        color = getattr(record, "color", RESET)
+        record.msg = f"{color}{record.getMessage()}{RESET}"
         record.args = ()
         return super().format(record)
     
@@ -52,6 +38,7 @@ def verbose(self, msg, *args, **kwargs):
         kwargs.setdefault("stacklevel", 2)
         self._log(VERBOSE, msg, args, **kwargs)
 Logger.verbose = verbose
+
 
 for name, level in [
     ("debug", DEBUG),
