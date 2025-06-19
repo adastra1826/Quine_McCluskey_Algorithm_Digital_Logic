@@ -3,26 +3,22 @@
 MODULE DATA
 """
 
+from global_constants import *
+
 import logger_setup
 import os
 import sys
 import getopt
 from pprint import pformat, pprint
-import logging
+from logging import getLogger
 from typing import Optional
 from sanitize_qm_input import sanitize_file_input
 from generate_prime_implicants import recursive_generate_prime_implicants
+from parse_sum_of_products_input import parse_sop_input
 
-logger = logging.getLogger("quine_mccluskey")
+logger = getLogger("quine_mccluskey")
 
-# Define global constants
-OPTIONS: str = "m:d:yh"
-LONG_OPTIONS: list[str] = ["minterms=", "dontcares=", "yes", "help"]
-ALLOWED_EXTENSIONS: list[str] = [".txt", ".md", ".tsv", ".csv"]
-USAGE_TEXT: str = "[USAGE]"
-
-
-logger.info(f"----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------")
+logger.info(f"----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------\n----------------------------------------------------------------------------------------------------------------------------------", color = RED)
 
 
 def parse_options() -> None:
@@ -34,19 +30,26 @@ def parse_options() -> None:
         sys.exit(1)
     
     parsed: dict[str, bool] = {
-        "minterms": False,
-        "dontcares": False,
         "overwrite": False,
         "help": False
     }
 
+    optionArguments: dict[str, Optional[str]] = {
+        "minterms": None,
+        "dontcares": None,
+        "labels": None
+    }
+
     for argument, value in options:
         if argument in ("-m", "--minterms"):
-            parsed["minterms"] = True
+            optionArguments["minterms"] = value
             logger.debug(f"Minterms specified")
         elif argument in ("-d", "--dontcares"):
-            parsed["dontcares"] = True
+            optionArguments["dontcares"] = value
             logger.debug(f"Don't cares specified")
+        elif argument in ("-l", "labels="):
+            optionArguments["labels"] = value
+            logger.debug(f"Labels specified")
         elif argument in ("-y", "--yes"):
             parsed["overwrite"] = True
             logger.debug(f"OVerwrite output file specified")
@@ -59,22 +62,32 @@ def parse_options() -> None:
         sys.exit(0)
 
     argumentCount: int = len(arguments)
-    if argumentCount == 0:
-        raise SyntaxError(f"No input file specified. {USAGE_TEXT}")
-    elif argumentCount > 2:
-        raise SyntaxError(f"Too many arguments passed. {USAGE_TEXT}")
+    inputData: Optional[list[list[any]]] = None
 
-    inputFilePath: str = arguments[0]
-    _, fileExtension = os.path.splitext(inputFilePath)
-    if fileExtension.lower() not in ALLOWED_EXTENSIONS:
-        raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
-    inputData: list[list[any]] = sanitize_file_input(inputFilePath)
+    if argumentCount > 2:
+        raise SyntaxError(f"Too many arguments passed.\n{USAGE_TEXT}")
+
+    if optionArguments["minterms"]:
+        if argumentCount == 2:
+            raise SyntaxError(f"You cannot specify both an input file and minterms.\n{USAGE_TEXT}")
+        inputData = parse_sop_input(optionArguments["minterms"], optionArguments["dontcares"])
+    else:
+        if argumentCount == 0:
+            raise SyntaxError(f"No input file specified.\n{USAGE_TEXT}")
+
+        inputFilePath: str = arguments[0]
+        _, fileExtension = os.path.splitext(inputFilePath)
+        if fileExtension.lower() not in ALLOWED_EXTENSIONS:
+            raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
+        inputData = sanitize_file_input(inputFilePath)
 
     outputLocation: Optional[str] = None
     if argumentCount == 2:
         outputLocation = set_output_file_path(arguments[1], fileExtension, parsed["overwrite"])
-
-    outputData: list[list[any]] = quine_mccluskey(inputData)
+    if inputData:
+        outputData: list[list[any]] = quine_mccluskey(inputData)
+    else:
+        raise RuntimeError(f"This should never happen. Internal script error.")
 
 
 def set_output_file_path(

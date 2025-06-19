@@ -1,5 +1,5 @@
 from logging import *
-from bash_colors import *
+from global_constants import *
 
 VERBOSE = 5
 
@@ -63,7 +63,8 @@ handler.setFormatter(
 
 root.addHandler(handler)
 
+getLogger("quine_mccluskey").setLevel(VERBOSE)
 getLogger("sanitize_qm_input").setLevel(WARNING)
 getLogger("generate_prime_implicants").setLevel(INFO)
-getLogger("quine_mccluskey").setLevel(INFO)
 getLogger("generate_missing_rows").setLevel(DEBUG)
+getLogger("parse_sum_of_products_input").setLevel(VERBOSE)
