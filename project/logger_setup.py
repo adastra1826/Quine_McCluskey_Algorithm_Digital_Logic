@@ -5,7 +5,7 @@ VERBOSE = 5
 
 LEVEL_DEFAULTS = {
     VERBOSE: WHITE,
-    DEBUG: CYAN,
+    DEBUG: WHITE,
     INFO: GREEN,
     WARNING: YELLOW,
     ERROR: BG_RED + WHITE
@@ -65,6 +65,6 @@ root.addHandler(handler)
 
 getLogger("quine_mccluskey").setLevel(VERBOSE)
 getLogger("sanitize_qm_input").setLevel(WARNING)
-getLogger("generate_prime_implicants").setLevel(INFO)
+getLogger("generate_prime_implicants").setLevel(DEBUG)
 getLogger("generate_missing_rows").setLevel(DEBUG)
 getLogger("parse_sum_of_products_input").setLevel(VERBOSE)
