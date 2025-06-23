@@ -7,32 +7,38 @@ from pprint import pformat
 logger = getLogger(__name__)
 
 def recursive_generate_prime_implicants(
-        combinedMintermTableAndIndex: list[list[list[any]]],
+        combinedMintermTableAndIndices: list[list[any]],
         mintermLength: int,
         recursionLevel: int = 0,
-        minimizedMinterms: Optional[list[list[any]]] = None
+        fullyMinimizedMinterms: Optional[list[list[any]]] = []
     ) -> tuple[Optional[list[list[any]]], Optional[list[list[any]]]]:
 
-    tableLength: int = len(combinedMintermTableAndIndex)
+    # Determine the number of bits at the beginning of each term that are not part of the minterm itself
     binaryValue: str = ""
     for idx in range(recursionLevel + 1):
         binaryValue += "1" if idx == 0 else "0"
     binaryValue = int(binaryValue, 2)
     disregardedBitCount = binaryValue
 
+    mintermTable: list[list[any]]
+    mintermTable = generate_minterm_table_index(combinedMintermTableAndIndices, disregardedBitCount)
+
+    mintermGroupCount: int = 0
+    for group in mintermTable:
+        if group:
+            mintermGroupCount += 1
+
     logger.debug(f"Recursion level: {recursionLevel}")
     logger.debug(f"Disregarded bit count: {disregardedBitCount}")
-    logger.debug(f"Combined minterm table:\n{pformat(combinedMintermTableAndIndex)}")
-    logger.debug(f"Minterm table length: {tableLength}")
+    logger.debug(f"Combined minterm table:\n{pformat(mintermTable)}")
+    logger.debug(f"Groups of minterms to check: {mintermGroupCount}")
 
-    if tableLength <= 1:
-
-        logger.debug(f"Minterm table length ({tableLength}) is insufficient for combining terms, returning it:\n{combinedMintermTableAndIndex}\n")
-
-        return (combinedMintermTableAndIndex)
+    if mintermGroupCount <= 1:
+        logger.debug(f"Minterm table length ({mintermGroupCount}) is insufficient for combining terms, returning it:\n{combinedMintermTableAndIndices}\n")
+        return fullyMinimizedMinterms + mintermTable
     
-    primeImplicants: list[list[any]] = [[]]
-    usedImplicants: list[any] = []
+    newPrimeImplicants: list[list[any]] = []
+    usedImplicants: list[list[any]] = []
 
     newTerms: int = 0
     i: int = 0
@@ -40,11 +46,11 @@ def recursive_generate_prime_implicants(
 
         logger.verbose(f"i: {i}")
 
-        groupOne: list[any] = combinedMintermTableAndIndex[i]
-        groupTwo: list[any] = combinedMintermTableAndIndex[i + 1]
+        groupOne: list[any] = mintermTable[i]
+        groupTwo: list[any] = mintermTable[i + 1]
 
 
-        logger.debug(f"Group one: {groupOne}\nGroup two: {groupTwo}")
+        logger.debug(f"Group {i}: {groupOne}\nGroup {i + 1}: {groupTwo}")
 
         for tOneIndex, termOne in enumerate(groupOne):
             for tTwoIndex, termTwo in enumerate(groupTwo):
@@ -54,10 +60,10 @@ def recursive_generate_prime_implicants(
                 mintermTwo: list[any]  = termTwo[disregardedBitCount:-1]
                 termOneMIndex: list[int] = termOne[:disregardedBitCount]
                 termTwoMIndex: list[int] = termTwo[:disregardedBitCount]
-                combinedTermIndex: list[int] = termOneMIndex + termTwoMIndex
+                combinedNewTermIndex: list[int] = termOneMIndex + termTwoMIndex
                 termOneOperand: any = termOne[-1]
                 termTwoOperand: any = termTwo[-1]
-                mintermOperand: list[any] = ["x"] if termOneOperand != 1 and termTwoOperand != 1 else [1]
+                newMintermOperand: list[any] = ["x"] if termOneOperand != 1 and termTwoOperand != 1 else [1]
 
                 logger.verbose(f"""T1 index: {tOneIndex}
 Term one: {termOne}
@@ -78,88 +84,84 @@ Term two: {termTwo}
                             differingBit = True
                         else: break
 
-                if newTerm:                    
-
+                if newTerm:
+                    
+                    newTerms += 1
                     usedImplicants.append(termOne)
                     usedImplicants.append(termTwo)
 
-                    combinedNewTerm: list[any] = combinedTermIndex + newTerm + mintermOperand
+                    combinedNewTerm: list[any] = combinedNewTermIndex + newTerm + newMintermOperand
 
                     logger.verbose(f"New term:\n{newTerm}\nCombined new term:\n{combinedNewTerm}")
 
-                    appendMinterm: bool = True
                     try:
-                        appendMinterm = check_if_minterm_is_unique(newTerm, primeImplicants[i], mintermLength)
-                        
-                        if appendMinterm == False: logger.info(f"Will not append {newTerm} to {pformat(primeImplicants[i])}")
+                        logger.verbose(f"Try to append `{newTerm}` to:\n{pformat(newPrimeImplicants[i])}")
+                        newPrimeImplicants[i].append(combinedNewTerm)
                     except:
-                        # If primeImplicants[i] does not exist (which would raise an error), the new minterm is automatically not a duplicate
-                        continue
+                        logger.verbose(f"primeImplicants[{i}] does not exist, addind it and appending term.")
+                        newPrimeImplicants.append([])
+                        newPrimeImplicants[i].append(combinedNewTerm)
 
-                    if appendMinterm:
-                        try:
-                            logger.verbose(f"Try to append `{newTerm}` to:\n{pformat(primeImplicants[i])}")
-
-                            primeImplicants[i].append(combinedNewTerm)
-                        except:
-                            logger.verbose(f"primeImplicants[{i}] does not exist, addind it and appending term.")
-                            primeImplicants.append([])
-                            primeImplicants[i].append(combinedNewTerm)
-                        
-                        newTerms += 1
-
-                        #logger.debug(f"Current prime implicants:\n{print(primeImplicants)}", color = CYAN)
-            
         i += 1
-        if i == tableLength - 1:
+        if i == mintermGroupCount - 1:
             # Prevent index error. At this point all possible group combinations will have been checked
             break
 
-    if len(primeImplicants) == 1:
+    logger.debug(f"New prime implicants:\n{pformat(newPrimeImplicants)}", color = CYAN)
 
-        #uniquePrimeImplicants = remove_duplicate_minterms(primeImplicants[0], mintermLength)
-        uniquePrimeImplicants = primeImplicants[0].copy()
-        
-        uniqueUsedImplicants: list[any] = []
-        for term in usedImplicants:
-            if term not in uniqueUsedImplicants:
-                uniqueUsedImplicants.append(term)
+    logger.verbose(f"Used implicants:\n{pformat(usedImplicants)}")
 
-        logger.verbose(f"Used implicants:\n{pformat(uniqueUsedImplicants)}")
+    # Create unique list of all implicants that were used
+    uniqueUsedImplicants: list[list[any]] = []
+    for term in usedImplicants:
+        if term not in uniqueUsedImplicants:
+            uniqueUsedImplicants.append(term)
+    logger.verbose(f"Unique used implicants:\n{pformat(uniqueUsedImplicants)}")
+                
+    # Flatten the nested original implicants into one list
+    originalImplicants: list[list[any]] = []
+    for group in mintermTable:
+        for term in group:
+            originalImplicants.append(term)
+    logger.verbose(f"Original implicants:\n{pformat(originalImplicants)}")
+    
+    # Find all implicants that were not used
+    unusedImplicants: list[list[any]] = []
+    for term in originalImplicants:
+        if term not in uniqueUsedImplicants:
+            unusedImplicants.append(term)
+    logger.verbose(f"Terms not used in this round:\n{pformat(unusedImplicants)}")
 
-        originalImplicants: list[any] = []
-        for group in combinedMintermTableAndIndex:
-            for term in group:
-                originalImplicants.append(term)
+    if unusedImplicants:
+        fullyMinimizedMinterms.append(unusedImplicants)
 
-        logger.verbose(f"Original implicants:\n{pformat(originalImplicants)}")
-
-        unusedImplicants: list[any] = []
-        for term in originalImplicants:
-            if term not in uniqueUsedImplicants:
-                unusedImplicants.append(term)
-
-        logger.verbose(f"Unused implicants:\n{pformat(unusedImplicants)}")
-
-        uniqueUnusedImplicants = remove_duplicate_minterms(unusedImplicants, mintermLength)
-
-        logger.verbose(f"Unique unused implicants:\n{pformat(uniqueUnusedImplicants, width=100)}")
-
-        returnlist = uniquePrimeImplicants.copy()
-        if len(uniqueUnusedImplicants) > 0:
-            returnlist.insert(0, uniqueUnusedImplicants)
-
-        logger.debug(f"Prime implicants (returning this):\n{returnlist}")
-
-        return returnlist
-    elif len(primeImplicants) > 1:
-
-        logger.debug(f"Going deeper with these prime implicants:\n{primeImplicants}")
-
-        return recursive_generate_prime_implicants(primeImplicants, mintermLength, recursionLevel + 1)
+    if len(newPrimeImplicants) > 1:
+        return recursive_generate_prime_implicants(newPrimeImplicants, mintermLength, recursionLevel + 1, unusedImplicants)
     else:
-        logger.warning(f"Reached the end of the function with nothing. This probably shouldn't happen?")
-        return [None]
+        return unusedImplicants + newPrimeImplicants
+
+
+def generate_minterm_table_index(
+        inputData: list[list[any]],
+        disregardedBitCount: int
+    ) -> list[list[any]]:
+    
+    mintermLength: int = len(inputData[0])
+    mintermTable: list[list[list[int]]] = [[] for _ in range(mintermLength)]
+
+    for i, row in enumerate(inputData):
+        print(f"Row: {row}")
+        outputBit = row[-1]
+        if outputBit in {1, "x"}:
+            numOnes: int = 0
+            for bit in row[disregardedBitCount:-1]:
+                if bit == 1:
+                    numOnes += 1
+            mintermTable[numOnes].append(row)
+
+    logger.verbose(f"Minterm table:\n{pformat(mintermTable)}")
+
+    return mintermTable
     
 
 def remove_duplicate_minterms(
