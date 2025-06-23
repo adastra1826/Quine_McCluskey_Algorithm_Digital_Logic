@@ -12,7 +12,7 @@ def sanitize_file_input(inputFilePath):
     file = resolve_input_file_path(inputFilePath)
     
     # Open source file, stream its contents while casting int strings to int type
-    sanitizedInput = []
+    sanitizedInput: list[any] = []
     with open(file, "r") as f:
         for line in f:
             splitData = re.split(r"[,\t ]", line.strip())
@@ -27,7 +27,7 @@ def sanitize_file_input(inputFilePath):
         
     logger.info(f"Starting data:\n{pformat(sanitizedInput)}")
 
-    numRows = len(sanitizedInput)
+    numRows: int = len(sanitizedInput)
 
     if numRows == 0:
         raise ValueError(f"Input file contains no content.")
@@ -67,7 +67,7 @@ def sanitize_file_input(inputFilePath):
             elif cell == "x" and y != rowLength - 1:
                 raise ValueError(f"Table data in row {i + 1}, cell {y + 1} is invalid. `x` may only exist in last column.")
             
-    sortedInput = recursive_binary_partition_sort(sanitizedInput)
+    sortedInput: list[list[any]] = recursive_binary_partition_sort(sanitizedInput)
 
     logger.verbose(f"Sorted input data:\n{pformat(sortedInput)}")
     
@@ -75,6 +75,10 @@ def sanitize_file_input(inputFilePath):
     if numRows < maxRows:
         logger.verbose(f"Actual rows: {numRows}\nMax rows:    {maxRows}")
         sortedInput = generate_missing_rows(sortedInput, maxRows)
+
+    # Add index value at start of each term in the table. This will be used later in the recursive minterm combination/reduction
+    for idx, term in enumerate(sortedInput):
+        term.insert(0, idx)
 
     logger.debug(f"Final list:\n{pformat(sortedInput)}")
     return sortedInput
@@ -88,31 +92,42 @@ def resolve_input_file_path(inputFilePath):
     return resolvedPath
 
 
-def recursive_binary_partition_sort(rows, col = 0):
+def recursive_binary_partition_sort(
+        rows: int, 
+        col: int = 0
+    ) -> list[list[any]]:
+
     logger.verbose(f"Rows to sort by column {col}:\n{pformat(rows)}")
 
     if rows == []:
         logger.verbose(f"Missing row.")
         return []
 
-    termMax = len(rows[0]) - 1
-    sortedList = sorted(rows, key=lambda x: x[col])
+    termMax: int = len(rows[0]) - 1
+    sortedList: list[list[any]] = sorted(rows, key=lambda x: x[col])
 
     logger.verbose(f"Sorted rows:\n{pformat(sortedList)}")
 
     if col >= termMax or len(rows) <= 1:
         return sortedList
     
+    zeroSubSplitList: list[list[any]]
+    oneSubSplitList: list[list[any]]
+    
     zeroSubSplitList, oneSubSplitList = binary_split_nested_list(sortedList, col)
 
-    zeroSubSortedList = recursive_binary_partition_sort(zeroSubSplitList, col + 1)
-    oneSubSortedList = recursive_binary_partition_sort(oneSubSplitList, col + 1)
+    zeroSubSortedList: list[list[any]] = recursive_binary_partition_sort(zeroSubSplitList, col + 1)
+    oneSubSortedList: list[list[any]] = recursive_binary_partition_sort(oneSubSplitList, col + 1)
+
     return zeroSubSortedList + oneSubSortedList
 
 
-def binary_split_nested_list(nestedList, index):
-    zeroSubList = []
-    oneSubList = []
+def binary_split_nested_list(
+        nestedList: list[list[int]],
+        index: int
+    ) -> list[list[int]]:
+    zeroSubList: list[int] = []
+    oneSubList: list[int] = []
     for i in nestedList:
         if i[index] == 0:
             zeroSubList.append(i)

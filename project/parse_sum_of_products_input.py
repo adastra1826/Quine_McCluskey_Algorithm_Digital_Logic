@@ -61,9 +61,9 @@ def parse_sop_input(
         bitCount = inputCount
     
     finalMintermTable: list[list[any]] = []
-    for mintermSpecification in combinedFinalSpecification:
+    for idx, mintermSpecification in enumerate(*combinedFinalSpecification):
         bitValue = generate_binary_representation_as_list(mintermSpecification[0], bitCount)
-        finalMintermTable.append(bitValue + [mintermSpecification[1]])
+        finalMintermTable.append(idx + bitValue + [mintermSpecification[1]])
 
     logger.verbose(f"Final reconstructed minterm table:\n{finalMintermTable}")
     
