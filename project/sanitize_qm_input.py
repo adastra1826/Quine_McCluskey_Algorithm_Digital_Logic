@@ -66,14 +66,16 @@ def sanitize_file_input(inputFilePath):
                 raise ValueError(f"Table data in row {i + 1}, cell {y + 1} is invalid. `{cell}` is not 0, 1, or x")
             elif cell == "x" and y != rowLength - 1:
                 raise ValueError(f"Table data in row {i + 1}, cell {y + 1} is invalid. `x` may only exist in last column.")
-            
+        
+    logger.debug(f"Original input:\n{pformat(sanitizedInput)}")
+
     sortedInput: list[list[any]] = recursive_binary_partition_sort(sanitizedInput)
 
-    logger.verbose(f"Sorted input data:\n{pformat(sortedInput)}")
+    logger.debug(f"Sorted input data:\n{pformat(sortedInput)}")
     
     # Generate missing rows (as "don't care" minterms)
     if numRows < maxRows:
-        logger.verbose(f"Actual rows: {numRows}\nMax rows:    {maxRows}")
+        logger.debug(f"Actual rows: {numRows}\nMax rows:    {maxRows}")
         sortedInput = generate_missing_rows(sortedInput, maxRows)
 
     # Add index value at start of each term in the table. This will be used later in the recursive minterm combination/reduction
