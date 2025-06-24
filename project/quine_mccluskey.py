@@ -62,7 +62,7 @@ def parse_options() -> None:
         sys.exit(0)
 
     argumentCount: int = len(arguments)
-    inputData: Optional[list[list[any]]] = None
+    sanitizedInputData: Optional[list[list[any]]] = None
 
     if argumentCount > 2:
         raise SyntaxError(f"Too many arguments passed.\n{USAGE_TEXT}")
@@ -70,7 +70,7 @@ def parse_options() -> None:
     if optionArguments["minterms"]:
         if argumentCount == 2:
             raise SyntaxError(f"You cannot specify both an input file and minterms.\n{USAGE_TEXT}")
-        inputData = parse_sop_input(optionArguments["minterms"], optionArguments["dontcares"])
+        sanitizedInputData = parse_sop_input(optionArguments["minterms"], optionArguments["dontcares"])
     else:
         if argumentCount == 0:
             raise SyntaxError(f"No input file specified.\n{USAGE_TEXT}")
@@ -79,13 +79,13 @@ def parse_options() -> None:
         _, fileExtension = os.path.splitext(inputFilePath)
         if fileExtension.lower() not in ALLOWED_EXTENSIONS:
             raise ValueError(f"Filetype {fileExtension} not supported, must be one of: {ALLOWED_EXTENSIONS}")
-        inputData = sanitize_file_input(inputFilePath)
+        sanitizedInputData = sanitize_file_input(inputFilePath)
 
     outputLocation: Optional[str] = None
     if argumentCount == 2:
         outputLocation = set_output_file_path(arguments[1], fileExtension, parsed["overwrite"])
-    if inputData:
-        outputData: list[list[any]] = quine_mccluskey(inputData)
+    if sanitizedInputData:
+        outputData: list[list[any]] = quine_mccluskey(sanitizedInputData)
     else:
         raise RuntimeError(f"This should never happen. Internal script error.")
 
@@ -129,62 +129,18 @@ def set_output_file_path(
 
 
 def quine_mccluskey(
-        inputData: list[list[any]]
+        completeImplicantTable: list[list[any]]
     ) -> list[list[any]]:
 
+    logger.info(f"Sanitized input data:\n{pformat(completeImplicantTable)}")
 
-    logger.info(f"Sanitized input data:\n{pformat(inputData)}")
+    mintermLength = len(completeImplicantTable[0]) - 2
 
-    mintermTableIndex: list[list[int]]
-    mintermTable: list[list[any]] 
-    mintermTableIndex, mintermTable = generate_minterm_table_index(inputData)
-    mintermLength = len(inputData[0]) - 1
-
-    initialCombinedMintermTableAndIndex: list[list[list[any]]] = [[] for _ in mintermTableIndex]
-
-    for idx, itemX in enumerate(mintermTableIndex):
-        for idy, itemY in enumerate(itemX):
-            combinedTerm: list[any] = [itemY] + mintermTable[idx][idy]
-            initialCombinedMintermTableAndIndex[idx].append(combinedTerm)
-
-
-    combinedMintermTableAndIndex: list[list[list[any]]] = []
-
-    for group in initialCombinedMintermTableAndIndex:
-        if len(group) != 0:
-            combinedMintermTableAndIndex.append(group)
-
-    logger.verbose(f"Combined table:\n{pformat(combinedMintermTableAndIndex)}")
-
-    primeImplicants: list[list[any]] = recursive_generate_prime_implicants(combinedMintermTableAndIndex, mintermLength)
+    primeImplicants: list[list[any]] = recursive_generate_prime_implicants(completeImplicantTable, mintermLength)
 
     logger.info(f"Prime implicants:\n{primeImplicants}")
 
-    return inputData
-
-
-def generate_minterm_table_index(
-        inputData: list[list[any]]
-    ) -> tuple[list[list[int]], list[list[any]]]:
-    
-    mintermLength: int = len(inputData[0])
-    mintermTableIndex: list[list[int]] = [[] for _ in range(mintermLength)]
-    mintermTable: list[list[int]] = [[] for _ in range(mintermLength)]
-
-    for i, row in enumerate(inputData):
-        outputBit = row[mintermLength - 1]
-        if outputBit in {1, "x"}:
-            numOnes: int = 0
-            for bit in row[:len(row) - 1]:
-                if bit == 1:
-                    numOnes += 1
-            mintermTableIndex[numOnes].append(i)
-            mintermTable[numOnes].append(row)
-
-    logger.debug(f"Minterm table index:\n{pformat(mintermTableIndex)}")
-    logger.debug(f"Minterm table:\n{pformat(mintermTable)}")
-
-    return mintermTableIndex, mintermTable
+    return completeImplicantTable
 
 
 if __name__ == "__main__":
